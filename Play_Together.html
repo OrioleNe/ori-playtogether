@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Play Together - Memory Board Game</title>
+  <style>
+    :root {
+      --bg: #489AE4; 
+      --card: #2964C0; 
+      --cell: #3582DE; 
+      --text: #ffffff; 
+      --brand: #2563eb; 
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, sans-serif; background: var(--bg); color: var(--text);
+      display: flex; flex-direction: column; align-items: center; padding: 16px;
+    }
+    .wrapper { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 14px; }
+    .box { background: var(--card); border-radius: 12px; padding: 14px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .flex-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; }
+    label { font-weight: bold; color: #ffffff; }
+    input[type="number"] {
+      padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; color: #000; outline: none;
+      width: 55px; text-align: center; font-weight: bold;
+    }
+    button {
+      padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;
+    }
+    .btn-green { background: #10b981; color: #fff; }
+    .btn-red { background: #e11d48; color: #fff; }
+    
+    .grid-list { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 5px; }
+    .item-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
+    .item-box {
+      width: 50px; height: 65px; border-radius: 8px; background: var(--cell); border: 2px solid transparent;
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+    .item-wrap.active .item-box { border-color: var(--brand); box-shadow: 0 0 10px rgba(37, 99, 235, 0.8); }
+    
+    .main-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      z-index: 2;
+      pointer-events: none;
+      position: relative;
+    }
+
+    .item-label { font-size: 11px; color: #e2e8f0; text-align: center; font-weight: 600; }
+    
+    #board-grid { 
+      display: grid; 
+      gap: 6px; 
+      margin: 15px auto; 
+      padding: 10px; 
+      background: rgba(255, 255, 255, 0.25); 
+      border-radius: 12px; 
+      width: max-content; 
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .board-cell { 
+      width: 60px; 
+      height: 75px; 
+      background: var(--cell); 
+      border-radius: 8px; 
+      cursor: pointer;
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      overflow: hidden;
+      position: relative;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+    .board-cell:hover {
+      filter: brightness(1.1);
+      transform: scale(1.02);
+    }
+
+    .footer {
+      font-size: 12px;
+      color: #e2e8f0;
+      text-align: center;
+      padding: 10px 0 4px;
+      line-height: 1.8;
+    }
+    .footer a { color: #bfdbfe; text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+  <div class="box flex-row">
+    <label>Hàng:</label> <input id="inp-rows" type="number" value="4" min="1" max="10">
+    <label>Cột:</label> <input id="inp-cols" type="number" value="5" min="1" max="10">
+    <button class="btn-green" onclick="initGrid()">🔄 Làm mới bảng</button>
+    <button class="btn-red" onclick="clearAllCells()">🗑️ Xóa hết thẻ</button>
+  </div>
+
+  <div class="box">
+    <p style="font-size: 13px; text-align: center; margin-bottom: 8px; color: #e2e8f0;">👉 Chọn một thẻ bên dưới rồi bấm vào ô trong bảng để đặt thẻ</p>
+    <div class="grid-list">
+      <div class="item-wrap active" onclick="selectCard(this, '1')" id="card-1">
+        <div class="item-box" id="box-1"></div><div class="item-label">Thẻ Gợi ý</div>
+      </div>
+      <div class="item-wrap" onclick="selectCard(this, '2')" id="card-2">
+        <div class="item-box" id="box-2"></div><div class="item-label">Thẻ Cơ hội</div>
+      </div>
+      <div class="item-wrap" onclick="selectCard(this, '3')" id="card-3">
+        <div class="item-box" id="box-3"></div><div class="item-label">Thẻ Xu SK</div>
+      </div>
+      <div class="item-wrap" onclick="selectCard(this, '4')" id="card-4">
+        <div class="item-box" id="box-4"></div><div class="item-label">Thẻ Mưa</div>
+      </div>
+      <div class="item-wrap" onclick="selectCard(this, '5')" id="card-5">
+        <div class="item-box" id="box-5"></div><div class="item-label">Thẻ Nắng nóng</div>
+      </div>
+      <div class="item-wrap" onclick="selectCard(this, '6')" id="card-6">
+        <div class="item-box" id="box-6"></div><div class="item-label">Thẻ Bão</div>
+      </div>
+      <div class="item-wrap" onclick="selectCard(this, '7')" id="card-7">
+        <div class="item-box" id="box-7"></div><div class="item-label">Thẻ Khí lạnh</div>
+      </div>
+      <div class="item-wrap" onclick="selectCard(this, '8')" id="card-8">
+        <div class="item-box" id="box-8"></div><div class="item-label">Thẻ Gió</div>
+      </div>
+      <div class="item-wrap" onclick="selectCard(this, '9')" id="card-9">
+        <div class="item-box" id="box-9"></div><div class="item-label">Thẻ Ánh trăng</div>
+      </div>
+      <div class="item-wrap" onclick="selectCard(this, 'eraser')" id="card-eraser">
+        <div class="item-box" style="font-size:20px; background:#475569; color:#fff; z-index: 4;">❌</div><div class="item-label">Xóa thẻ</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="board-grid"></div>
+
+  <div class="footer">
+    Để báo cáo lỗi vui lòng liên hệ:<br>
+    Discord: <a href="https://discord.gg/AgsNkawF" target="_blank">oriolene</a> &nbsp;|&nbsp;
+    Tiktok: <a href="https://tiktok.com/@h.anh_9" target="_blank">@h.anh_9</a> &nbsp;|&nbsp;
+    Facebook: <a href="https://facebook.com/oriolene" target="_blank">oriolene</a> &nbsp;|&nbsp;
+    Mail: <a href="mailto:oriole.hoanganh@hotmail.com">oriole.hoanganh@hotmail.com</a>
+  </div>
+</div>
+
+<script>
+  const urlsStore = { 
+    "1": "https://lh3.googleusercontent.com/pw/AP1GczO4pIlJfNcuMRe4QO7hMWFfX9jiqO8R4_RYiP7uuvUkPYxFNCGyFJTYEM23duxHIhef3YHRAFzlAs6Dg4je7tCNAM1Q4apNZwrtrIH1zJQy6K_lpuToppItd8ANEKJE-x0A4CltotvqC4veDyzSkasivQ=w449-h520-s-no-gm?authuser=0", 
+    "2": "https://lh3.googleusercontent.com/pw/AP1GczO1gOxEh3qEE7tdAdhL-8TOsw_4tdqbtxrGZbay7jxWRNQAXImfMyXE_m2OabnNXwG_uFg5sh5EtpDIgOPBCgEMd-rc0D4FGheMeq-BRa8qK3Gm69s6Cmeb7lTsu71Yo-ttIBGR6whuFZp4v01bo7T1vw=w449-h520-s-no-gm?authuser=0", 
+    "3": "https://lh3.googleusercontent.com/pw/AP1GczOihi5zX5K3uHIqzoFcKl1lUF4xaVp81VUK2oJqBehD2n8956QxQOD84T7FPt23GQj-GZW-ALScpI-gL0rztxTgIhaHNAX50OaQK0HdtJqowRe6IAm1cELdTOc3rSntf8MPawaRZFR_xKrgul3-9NFWQA=w449-h520-s-no-gm?authuser=0", 
+    "4": "https://lh3.googleusercontent.com/pw/AP1GczOv03Hsy5DZYuNvw2gLESgbyrjfWzC48ej9wmHzJfBHHsZgHXsFsRT67LQwaMTU57b7d9-gKt-PUhsPV4JuKv0o5dNI050MNXyegwIBsV1SGUFIdO6Q7iFT0vI4j20C-cVXkV1mb1T1uEmdDaHDCuJqdQ=w449-h520-s-no-gm?authuser=0", 
+    "5": "https://lh3.googleusercontent.com/pw/AP1GczMAuYZ-hrFoucrxY0yfsNb3Ik571s-EloSWlpkgLRj0c-1r0GD4FsJdzX1pcw5OpbUEFhJOR5zO9quPQXJ6Y2G4RI3twXlbxPNBOsdWLByz-9KNLmBewFVZORYASyYOGSv5HG3JOpZr7mxmcwo68XyOsg=w449-h520-s-no-gm?authuser=0", 
+    "6": "https://lh3.googleusercontent.com/pw/AP1GczN2vrl-oc7QNcCupz_8D9xVeUr6hi3mV2Sy3HmduDuXllS_LPwDI5lMb5I4zr9nllN1lW9gw58nevg9Q5qq5Vspu5vIPYoNJeouW2oBsEoHOtP3ZqTJW60r8GT_0i61DaqSGmICrS5ezPvmFCoAcWgmEQ=w449-h520-s-no-gm?authuser=0", 
+    "7": "https://lh3.googleusercontent.com/pw/AP1GczNAHxdhlCkD_hGmfXc3-CF-XoxlDTAx_cWixGvXm0QGmih-XM5pKe_fv9WsHhXguY9mQOn-cvD6AxY_Cqhhw0PvZmeirjEo_6XgorLzQU684Rxs7FbnpZxI7D-UCf3RQ2x791_uvpgh5T1sC0I6bceimA=w449-h520-s-no-gm?authuser=0", 
+    "8": "https://lh3.googleusercontent.com/pw/AP1GczOPFb2b1EE60EsuhPIT_jJldp-9JPCG39_-KPGoahQGV94eB6n2FIaSMj7cfyzpVp_NIv0YqzaGZpR0DcDFJPVbO3HvRueuRSFm9t_0-5iOQpb6JlD50a_vMVi-dLjpSanYOW1kQQ1Xex_xbcLNS18oYw=w449-h520-s-no-gm?authuser=0",
+    "9": "https://lh3.googleusercontent.com/pw/AP1GczOF4tOf2q6Y89DPAQyaJb-vGb2aagd1eb65gJ1lOE58lKoJwa_Kdv5MEjnJzIHKJmIFhQ1nPcWOQsSOBJIULh61WiBDaX_8tFFDkRbFkxKfCu1oR6X5960g49m_tpN9kF3on3a7CIjCYBtlzb5DtKfAoA=w449-h520-s-no-gm?authuser=0" 
+  };
+  
+  let currentKey = "1";
+  let currentType = "image";
+
+  function applyColorAndImage(containerElement, key, srcUrl) {
+    if (!srcUrl) return;
+    containerElement.innerHTML = ''; 
+    const keyNum = parseInt(key);
+    if (keyNum >= 1 && keyNum <= 3) {
+      containerElement.style.backgroundColor = '#F16CE1';
+    } else {
+      containerElement.style.backgroundColor = '#FFFFFF';
+    }
+    const mainImg = document.createElement('img');
+    mainImg.className = 'main-img';
+    mainImg.setAttribute('referrerpolicy', 'no-referrer');
+    mainImg.src = srcUrl;
+    mainImg.onerror = function() {
+      mainImg.style.display = 'none';
+      containerElement.style.backgroundColor = "var(--cell)";
+    };
+    containerElement.appendChild(mainImg);
+  }
+
+  refreshPreviews();
+
+  function refreshPreviews() {
+    for (let i = 1; i <= 9; i++) {
+      const box = document.getElementById('box-' + i);
+      if (box) applyColorAndImage(box, i.toString(), urlsStore[i]);
+    }
+  }
+
+  function selectCard(element, key) {
+    document.querySelectorAll('.item-wrap').forEach(item => item.classList.remove('active'));
+    element.classList.add('active');
+    currentKey = key;
+    currentType = (key === 'eraser') ? 'eraser' : 'image';
+  }
+
+  function initGrid() {
+    const r = parseInt(document.getElementById('inp-rows').value) || 4;
+    const c = parseInt(document.getElementById('inp-cols').value) || 5;
+    const gridEl = document.getElementById('board-grid');
+    gridEl.innerHTML = '';
+    gridEl.style.gridTemplateColumns = 'repeat(' + c + ', auto)';
+    for (let i = 0; i < r * c; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'board-cell';
+      cell.addEventListener('click', () => {
+        if (currentType === 'eraser') {
+          cell.innerHTML = '';
+          cell.style.backgroundColor = 'var(--cell)';
+        } else {
+          applyColorAndImage(cell, currentKey, urlsStore[currentKey]);
+        }
+      });
+      cell.addEventListener('contextmenu', (e) => { 
+        e.preventDefault(); 
+        cell.innerHTML = ''; 
+        cell.style.backgroundColor = 'var(--cell)';
+      });
+      gridEl.appendChild(cell);
+    }
+  }
+
+  function clearAllCells() {
+    document.querySelectorAll('.board-cell').forEach(cell => {
+      cell.innerHTML = '';
+      cell.style.backgroundColor = 'var(--cell)';
+    });
+  }
+
+  initGrid();
+</script>
+</body>
+</html>
