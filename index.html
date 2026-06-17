@@ -9,6 +9,7 @@
       --bg: #489AE4; 
       --card: #2964C0; 
       --cell: #3582DE; 
+      --empty-cell: #76B3EA; 
       --text: #ffffff; 
       --brand: #2563eb; 
     }
@@ -18,28 +19,96 @@
       display: flex; flex-direction: column; align-items: center; padding: 16px;
     }
     .wrapper { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 14px; }
-    .box { background: var(--card); border-radius: 12px; padding: 14px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    
+    .box { 
+      background: var(--card); 
+      border-radius: 12px; 
+      padding: 14px; 
+      border: 1px solid rgba(255,255,255,0.1); 
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+    /* ĐẢM BẢO: Khung lớn bên ngoài luôn cho phép hiển thị các hiệu ứng nổi lên trên */
+    .box.has-list { overflow: visible; position: relative; }
+
     .flex-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; }
     label { font-weight: bold; color: #ffffff; }
-    input[type="number"] {
+    input[type="number"], select {
       padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; color: #000; outline: none;
       width: 55px; text-align: center; font-weight: bold;
     }
     button {
       padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;
     }
-    .btn-green { background: #10b981; color: #fff; }
-    .btn-red { background: #e11d48; color: #fff; }
-    
-    .grid-list { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 5px; }
-    .item-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
-    .item-box {
-      width: 50px; height: 58px; border-radius: 8px; background: var(--cell); border: 2px solid transparent;
-      display: flex; align-items: center; justify-content: center; overflow: hidden;
-      position: relative;
-      transition: all 0.2s ease;
+    .primary-button {
+      min-height: 40px; border-radius: 999px; border: 0; font-weight: 900; font-size: 15px;
+      padding: 0 22px; color: #ffffff; background: #47bbe8; box-shadow: 0 5px 0 #239fce;
+      -webkit-text-stroke: 1px #2f2f33; paint-order: stroke fill;
+      text-shadow: -1px 2px 0 #2f2f33, 0 2px 0 #2f2f33, 1px 2px 0 #2f2f33; cursor: pointer;
     }
-    .item-wrap.active .item-box { border-color: #ffffff; box-shadow: 0 0 10px rgba(255, 255, 255, 0.8); }
+    .primary-button:hover { background: #4ec1ed; }
+    .primary-button.is-refresh { background: #ff9929; box-shadow: 0 5px 0 #dc7e1b; }
+    .primary-button.is-refresh:hover { background: #ffa239; }
+
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.55); align-items: center; justify-content: center; z-index: 100;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-box {
+      background: var(--card); border-radius: 14px; padding: 22px; max-width: 320px; width: 90%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+    
+    /* THAY ĐỔI MỚI: Khung bọc xử lý cuộn vuốt mượt mà */
+    .grid-scroll-holder {
+      width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      margin-top: 5px;
+      padding: 8px 4px; /* Tạo không gian đệm nhẹ */
+    }
+    .grid-scroll-holder::-webkit-scrollbar { height: 6px; }
+    .grid-scroll-holder::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.4); border-radius: 4px; }
+
+    /* THAY ĐỔI MỚI: Cho phép danh sách tràn tự do để không cắt xén box-shadow */
+    .grid-list {
+      display: flex;
+      gap: 12px;
+      width: max-content;
+      overflow: visible;
+    }
+    
+    .item-wrap {
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      gap: 6px;
+      cursor: pointer; 
+      width: 54px; /* Định hình kích thước cố định cho mỗi cột thẻ */
+    }
+    
+    /* SỬA: Đặt vị trí tương đối để z-index hoạt động chính xác */
+    .item-box {
+      width: 50px; 
+      height: 58px; 
+      border-radius: 8px; 
+      background: var(--cell); 
+      border: 2px solid transparent;
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      overflow: hidden;
+      position: relative; 
+      transition: all 0.15s ease;
+      z-index: 1;
+    }
+    
+    /* SỬA: Đưa hiệu ứng phát sáng về lại item-box, giảm độ nhòe mịn màng và đẩy lên trên cùng */
+    .item-wrap.active .item-box { 
+      border-color: #ffffff; 
+      box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.8); 
+      overflow: visible; /* Giúp viền sáng lồi lên trên ảnh */
+      z-index: 10; /* Đưa lên trên cùng toàn hệ thống */
+    }
     
     .main-img {
       width: 100%;
@@ -48,46 +117,22 @@
       z-index: 2;
       pointer-events: none;
       position: relative;
+      border-radius: 6px; /* Bo góc ảnh mượt mà, ôm khít nẹp thẻ */
     }
 
     .item-label { font-size: 11px; color: #e2e8f0; text-align: center; font-weight: 600; }
     
     #board-grid { 
-      display: grid; 
-      gap: 6px; 
-      margin: 15px auto; 
-      padding: 10px; 
-      background: rgba(255, 255, 255, 0.25); 
-      border-radius: 12px; 
-      width: max-content; 
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      display: grid; gap: 6px; margin: 15px auto; padding: 10px; background: rgba(255, 255, 255, 0.25); 
+      border-radius: 12px; width: max-content; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     }
-
     .board-cell { 
-      width: 60px; 
-      height: 70px; 
-      background: var(--cell); 
-      border-radius: 8px; 
-      cursor: pointer;
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      overflow: hidden;
-      position: relative;
+      width: 60px; height: 70px; background: var(--cell); border-radius: 8px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;
       transition: background-color 0.2s ease, transform 0.1s ease;
     }
-    .board-cell:hover {
-      filter: brightness(1.1);
-      transform: scale(1.02);
-    }
-
-    .footer {
-      font-size: 12px;
-      color: #e2e8f0;
-      text-align: center;
-      padding: 10px 0 4px;
-      line-height: 1.8;
-    }
+    .board-cell:hover { filter: brightness(1.1); transform: scale(1.02); }
+    .footer { font-size: 12px; color: #e2e8f0; text-align: center; padding: 10px 0 4px; line-height: 1.8; }
     .footer a { color: #bfdbfe; text-decoration: none; }
     .footer a:hover { text-decoration: underline; }
   </style>
@@ -96,44 +141,61 @@
 
 <div class="wrapper">
   <div class="box flex-row">
-    <label>Hàng:</label> <input id="inp-rows" type="number" value="4" min="1" max="10">
-    <label>Cột:</label> <input id="inp-cols" type="number" value="5" min="1" max="10">
-    <button class="btn-green" onclick="initGrid()">🔄 Làm mới bảng</button>
-    <button class="btn-red" onclick="clearAllCells()">🗑️ Xóa hết thẻ</button>
+    <label>Hàng:</label>
+    <select id="inp-rows">
+      <option value="2">2</option>
+      <option value="3" selected>3</option>
+    </select>
+    <label>Cột:</label>
+    <select id="inp-cols">
+      <option value="4">4</option>
+      <option value="5" selected>5</option>
+      <option value="6">6</option>
+      <option value="7">7</option>
+      <option value="8">8</option>
+    </select>
+    <button class="primary-button" onclick="askConfirm('newBoard')">Tạo bảng mới</button>
+    <button class="primary-button is-refresh" onclick="askConfirm('resetBoard')">Đặt lại</button>
   </div>
 
-  <div class="box">
+  <div class="box has-list">
     <p style="font-size: 13px; text-align: center; margin-bottom: 8px; color: #e2e8f0;">👉 Chọn một thẻ bên dưới rồi bấm vào ô trong bảng để đặt thẻ</p>
-    <div class="grid-list">
-      <div class="item-wrap active" onclick="selectCard(this, '1')" id="card-1">
-        <div class="item-box" id="box-1"></div><div class="item-label">Thẻ Gợi ý</div>
-      </div>
-      <div class="item-wrap" onclick="selectCard(this, '2')" id="card-2">
-        <div class="item-box" id="box-2"></div><div class="item-label">Thẻ Cơ hội</div>
-      </div>
-      <div class="item-wrap" onclick="selectCard(this, '3')" id="card-3">
-        <div class="item-box" id="box-3"></div><div class="item-label">Thẻ Xu SK</div>
-      </div>
-      <div class="item-wrap" onclick="selectCard(this, '4')" id="card-4">
-        <div class="item-box" id="box-4"></div><div class="item-label">Thẻ Mưa</div>
-      </div>
-      <div class="item-wrap" onclick="selectCard(this, '5')" id="card-5">
-        <div class="item-box" id="box-5"></div><div class="item-label">Thẻ Nắng nóng</div>
-      </div>
-      <div class="item-wrap" onclick="selectCard(this, '6')" id="card-6">
-        <div class="item-box" id="box-6"></div><div class="item-label">Thẻ Bão</div>
-      </div>
-      <div class="item-wrap" onclick="selectCard(this, '7')" id="card-7">
-        <div class="item-box" id="box-7"></div><div class="item-label">Thẻ Khí lạnh</div>
-      </div>
-      <div class="item-wrap" onclick="selectCard(this, '8')" id="card-8">
-        <div class="item-box" id="box-8"></div><div class="item-label">Thẻ Gió</div>
-      </div>
-      <div class="item-wrap" onclick="selectCard(this, '9')" id="card-9">
-        <div class="item-box" id="box-9"></div><div class="item-label">Thẻ Ánh trăng</div>
-      </div>
-      <div class="item-wrap" onclick="selectCard(this, 'eraser')" id="card-eraser">
-        <div class="item-box" style="font-size:20px; background:#475569; color:#fff; z-index: 4;">❌</div><div class="item-label">Xóa thẻ</div>
+    
+    <div class="grid-scroll-holder">
+      <div class="grid-list">
+        <div class="item-wrap active" onclick="selectCard(this, '1')" id="card-1">
+          <div class="item-box" id="box-1"></div><div class="item-label">Thẻ Gợi ý</div>
+        </div>
+        <div class="item-wrap" onclick="selectCard(this, '2')" id="card-2">
+          <div class="item-box" id="box-2"></div><div class="item-label">Thẻ Cơ hội</div>
+        </div>
+        <div class="item-wrap" onclick="selectCard(this, '3')" id="card-3">
+          <div class="item-box" id="box-3"></div><div class="item-label">Thẻ Xu SK</div>
+        </div>
+        <div class="item-wrap" onclick="selectCard(this, '4')" id="card-4">
+          <div class="item-box" id="box-4"></div><div class="item-label">Thẻ Mưa</div>
+        </div>
+        <div class="item-wrap" onclick="selectCard(this, '5')" id="card-5">
+          <div class="item-box" id="box-5"></div><div class="item-label">Thẻ Nắng nóng</div>
+        </div>
+        <div class="item-wrap" onclick="selectCard(this, '6')" id="card-6">
+          <div class="item-box" id="box-6"></div><div class="item-label">Thẻ Bão</div>
+        </div>
+        <div class="item-wrap" onclick="selectCard(this, '7')" id="card-7">
+          <div class="item-box" id="box-7"></div><div class="item-label">Thẻ Khí lạnh</div>
+        </div>
+        <div class="item-wrap" onclick="selectCard(this, '8')" id="card-8">
+          <div class="item-box" id="box-8"></div><div class="item-label">Thẻ Gió</div>
+        </div>
+        <div class="item-wrap" onclick="selectCard(this, '9')" id="card-9">
+          <div class="item-box" id="box-9"></div><div class="item-label">Thẻ Ánh trăng</div>
+        </div>
+        <div class="item-wrap" onclick="selectCard(this, 'empty')" id="card-empty">
+          <div class="item-box" style="background:#475569; color:#22c55e; font-size:24px; font-weight:900; z-index: 4; border-radius: 8px;">✓</div><div class="item-label">Trống</div>
+        </div>
+        <div class="item-wrap" onclick="selectCard(this, 'eraser')" id="card-eraser">
+          <div class="item-box" style="font-size:20px; background:#475569; color:#fff; z-index: 4; border-radius: 8px;">❌</div><div class="item-label">Xóa thẻ</div>
+        </div>
       </div>
     </div>
   </div>
@@ -142,10 +204,21 @@
 
   <div class="footer">
     Để báo cáo lỗi vui lòng liên hệ:<br>
-    Discord: <a href="https://discord.gg/AgsNkawF" target="_blank">oriolene</a> &nbsp;|&nbsp;
-    Tiktok: <a href="https://tiktok.com/@h.anh_9" target="_blank">@h.anh_9</a> &nbsp;|&nbsp;
-    Facebook: <a href="https://facebook.com/oriolene" target="_blank">oriolene</a> &nbsp;|&nbsp;
+    Discord: <a href="https://discord.gg/ZrwJ7QFz" target="_blank">oriolene</a>  |  
+    Tiktok: <a href="https://tiktok.com/@h.anh_9" target="_blank">@h.anh_9</a>  |  
+    Facebook: <a href="https://facebook.com/oriolene" target="_blank">oriolene</a>  |  
     Mail: <a href="mailto:oriole.hoanganh@hotmail.com">oriole.hoanganh@hotmail.com</a>
+  </div>
+
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal-box">
+      <div class="modal-icon">?</div>
+      <div class="modal-text" id="modal-text">Bạn có muốn tiếp tục không?</div>
+      <div class="modal-actions">
+        <button class="primary-button" onclick="confirmYes()">Có</button>
+        <button class="primary-button is-refresh" onclick="confirmNo()">Không</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -170,14 +243,17 @@
     containerElement.innerHTML = ''; 
     const keyNum = parseInt(key);
     if (keyNum >= 1 && keyNum <= 3) {
-      containerElement.style.backgroundColor = '#F16CE1';
+      containerElement.style.backgroundColor = '#F16CE1'; 
     } else {
-      containerElement.style.backgroundColor = '#FFFFFF';
+      containerElement.style.backgroundColor = '#FFFFFF'; 
     }
+    
     const mainImg = document.createElement('img');
     mainImg.className = 'main-img';
     mainImg.setAttribute('referrerpolicy', 'no-referrer');
     mainImg.src = srcUrl;
+    mainImg.style.borderRadius = '6px';
+
     mainImg.onerror = function() {
       mainImg.style.display = 'none';
       containerElement.style.backgroundColor = "var(--cell)";
@@ -198,7 +274,44 @@
     document.querySelectorAll('.item-wrap').forEach(item => item.classList.remove('active'));
     element.classList.add('active');
     currentKey = key;
-    currentType = (key === 'eraser') ? 'eraser' : 'image';
+    if (key === 'eraser') currentType = 'eraser';
+    else if (key === 'empty') currentType = 'empty';
+    else currentType = 'image';
+  }
+
+  let pendingAction = null;
+
+  function boardHasCards() {
+    return Array.from(document.querySelectorAll('.board-cell')).some(cell => cell.innerHTML.trim() !== '' || cell.dataset.empty === 'true');
+  }
+
+  function askConfirm(action) {
+    if (!boardHasCards()) {
+      runAction(action);
+      return;
+    }
+    pendingAction = action;
+    const text = document.getElementById('modal-text');
+    text.textContent = action === 'newBoard'
+      ? 'Bạn có muốn tạo bảng mới không?'
+      : 'Bạn có muốn đặt lại bảng không?';
+    document.getElementById('confirm-modal').classList.add('show');
+  }
+
+  function confirmYes() {
+    document.getElementById('confirm-modal').classList.remove('show');
+    if (pendingAction) runAction(pendingAction);
+    pendingAction = null;
+  }
+
+  function confirmNo() {
+    document.getElementById('confirm-modal').classList.remove('show');
+    pendingAction = null;
+  }
+
+  function runAction(action) {
+    if (action === 'newBoard') initGrid();
+    if (action === 'resetBoard') clearAllCells();
   }
 
   function initGrid() {
@@ -214,14 +327,21 @@
         if (currentType === 'eraser') {
           cell.innerHTML = '';
           cell.style.backgroundColor = 'var(--cell)';
+          delete cell.dataset.empty;
+        } else if (currentType === 'empty') {
+          cell.innerHTML = '';
+          cell.style.backgroundColor = 'var(--empty-cell)';
+          cell.dataset.empty = 'true';
         } else {
           applyColorAndImage(cell, currentKey, urlsStore[currentKey]);
+          delete cell.dataset.empty;
         }
       });
       cell.addEventListener('contextmenu', (e) => { 
         e.preventDefault(); 
         cell.innerHTML = ''; 
         cell.style.backgroundColor = 'var(--cell)';
+        delete cell.dataset.empty;
       });
       gridEl.appendChild(cell);
     }
@@ -231,6 +351,7 @@
     document.querySelectorAll('.board-cell').forEach(cell => {
       cell.innerHTML = '';
       cell.style.backgroundColor = 'var(--cell)';
+      delete cell.dataset.empty;
     });
   }
 
