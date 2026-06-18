@@ -137,15 +137,29 @@
 
     .item-label { font-size: 11px; color: #e2e8f0; text-align: center; font-weight: 600; }
     
+    .board-scroll-wrap::-webkit-scrollbar { height: 6px; }
+    .board-scroll-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.4); border-radius: 4px; }
+    @media (max-width: 700px) and (orientation: portrait) {
+      .board-scroll-wrap {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 4px;
+      }
+    }
     #board-grid { 
-      display: grid; gap: 6px; margin: 15px auto; padding: 10px; background: rgba(255, 255, 255, 0.25); 
+      display: grid; gap: 6px; margin: 15px auto; padding: 10px; background: #6CA9E0; 
       border-radius: 12px; width: max-content; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     }
     .board-cell { 
       width: 60px; height: 70px; background: var(--cell); border-radius: 8px; cursor: pointer;
       display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;
       transition: background-color 0.2s ease, transform 0.1s ease;
+      background-image: url('https://lh3.googleusercontent.com/pw/AP1GczNrOte9iKVdTsCjMpmcRj1bCupYIBQBq1CP1JxJB_3OklHOATufYoDLMPaybvFnnRoGpYZ_3aLD5oF_XJS6xYomoUZBbwIR32oKg81Vovw4IJt9CRlxnbUy9anxY_0mjwEfMR59gzW5tPtQ47mc6K5xZw=w449-h520-s-no-gm?authuser=0');
+      background-size: cover;
+      background-position: center;
     }
+    .board-cell.has-card { background-image: none; }
     .board-cell:hover { filter: brightness(1.1); transform: scale(1.02); }
     .footer { font-size: 12px; color: #e2e8f0; text-align: center; padding: 10px 0 4px; line-height: 1.8; }
     .footer a { color: #bfdbfe; text-decoration: none; }
@@ -215,7 +229,9 @@
     </div>
   </div>
 
-  <div id="board-grid"></div>
+  <div class="board-scroll-wrap">
+    <div id="board-grid"></div>
+  </div>
 
   <div class="footer">
     Để báo cáo lỗi vui lòng liên hệ:<br>
@@ -342,13 +358,16 @@
         if (currentType === 'eraser') {
           cell.innerHTML = '';
           cell.style.backgroundColor = 'var(--cell)';
+          cell.classList.remove('has-card');
           delete cell.dataset.empty;
         } else if (currentType === 'empty') {
           cell.innerHTML = '';
           cell.style.backgroundColor = 'var(--empty-cell)';
+          cell.classList.add('has-card');
           cell.dataset.empty = 'true';
         } else {
           applyColorAndImage(cell, currentKey, urlsStore[currentKey]);
+          cell.classList.add('has-card');
           delete cell.dataset.empty;
         }
       });
@@ -356,6 +375,7 @@
         e.preventDefault(); 
         cell.innerHTML = ''; 
         cell.style.backgroundColor = 'var(--cell)';
+        cell.classList.remove('has-card');
         delete cell.dataset.empty;
       });
       gridEl.appendChild(cell);
@@ -366,6 +386,7 @@
     document.querySelectorAll('.board-cell').forEach(cell => {
       cell.innerHTML = '';
       cell.style.backgroundColor = 'var(--cell)';
+      cell.classList.remove('has-card');
       delete cell.dataset.empty;
     });
   }
