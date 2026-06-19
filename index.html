@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ori Tools – Bộ Công Cụ Cần Thiết Dành Cho Bạn - Được làm bởi Hoàng Anh (Ori) </title>
+  <title>Ori Tools – Bộ Công Cụ</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -35,18 +35,18 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 10px 18px;
+      padding: 12px 18px 16px;
       position: fixed;
-      bottom: 20px;
+      bottom: 36px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 50;
-      background: rgba(15, 32, 68, 0.85);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(28, 28, 30, 0.45);
+      backdrop-filter: blur(4px) saturate(160%);
+      -webkit-backdrop-filter: blur(4px) saturate(160%);
+      border: 1px solid rgba(255,255,255,0.15);
       border-radius: 14px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.35), 0 0 24px rgba(0,0,0,0.3);
       white-space: nowrap;
     }
     .nav-logo {
@@ -319,7 +319,7 @@
       z-index: 49;
     }
     @media (max-width: 520px) {
-      nav { bottom: 16px; padding: 8px 14px; border-radius: 12px; }
+      nav { bottom: 28px; padding: 10px 14px 14px; border-radius: 12px; }
       .hero { padding: 40px 18px 40px; }
     }
   </style>
@@ -332,7 +332,7 @@
 <nav>
   <div class="nav-logo" onclick="window.scrollTo({top:0, behavior:'smooth'});" style="cursor:pointer;">
     <div class="logo-icon">🎮</div>
-    Tools
+    Ori Tools
   </div>
   <div class="nav-divider"></div>
   <ul class="nav-links">
@@ -400,29 +400,27 @@
     <span>Facebook: <a href="https://facebook.com/oriolene" target="_blank">oriolene</a></span>
     <span>Mail: <a href="mailto:oriole.hoanganh@hotmail.com">oriole.hoanganh@hotmail.com</a></span>
   </div>
-  <div>Để báo cáo lỗi vui lòng liên hệ qua các kênh ở trên đây.</div>
+  <div>Để báo cáo lỗi vui lòng liên hệ qua các kênh ở trên.</div>
 </footer>
 
 </body>
 
 <script>
-  const interactiveCards = document.querySelectorAll('.tools-grid a.tool-card');
-
-  interactiveCards.forEach(card => {
+  // Khi click vào bất kỳ card nào, chọn ngẫu nhiên một card để pop
+  const cards = document.querySelectorAll('.tool-card');
+  cards.forEach(card => {
     card.addEventListener('click', function(e) {
-      this.classList.remove('popping');
-      
-      void this.offsetWidth;
-      
-      this.classList.add('popping');
-      
-      this.addEventListener('animationend', () => {
-        this.classList.remove('popping');
+      // Chọn ngẫu nhiên 1 card để pop (có thể là chính card này)
+      const randomCard = cards[Math.floor(Math.random() * cards.length)];
+      randomCard.classList.remove('popping');
+      // Force reflow để animation chạy lại dù cùng card
+      void randomCard.offsetWidth;
+      randomCard.classList.add('popping');
+      randomCard.addEventListener('animationend', () => {
+        randomCard.classList.remove('popping');
       }, { once: true });
     });
   });
-</script>
-  
 </script>
 </html>
 </html>
