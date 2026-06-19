@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ori Tools – Bộ Công Cụ</title>
+  <title>Ori Tools – Bộ Công Cụ Cần Thiết Dành Cho Bạn - Được làm bởi Hoàng Anh (Ori) </title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -332,7 +332,7 @@
 <nav>
   <div class="nav-logo" onclick="window.scrollTo({top:0, behavior:'smooth'});" style="cursor:pointer;">
     <div class="logo-icon">🎮</div>
-    Ori Tools
+    Tools
   </div>
   <div class="nav-divider"></div>
   <ul class="nav-links">
@@ -400,27 +400,29 @@
     <span>Facebook: <a href="https://facebook.com/oriolene" target="_blank">oriolene</a></span>
     <span>Mail: <a href="mailto:oriole.hoanganh@hotmail.com">oriole.hoanganh@hotmail.com</a></span>
   </div>
-  <div>Để báo cáo lỗi vui lòng liên hệ qua các kênh ở trên.</div>
+  <div>Để báo cáo lỗi vui lòng liên hệ qua các kênh ở trên đây.</div>
 </footer>
 
 </body>
 
 <script>
-  // Khi click vào bất kỳ card nào, chọn ngẫu nhiên một card để pop
-  const cards = document.querySelectorAll('.tool-card');
-  cards.forEach(card => {
+  const interactiveCards = document.querySelectorAll('.tools-grid a.tool-card');
+
+  interactiveCards.forEach(card => {
     card.addEventListener('click', function(e) {
-      // Chọn ngẫu nhiên 1 card để pop (có thể là chính card này)
-      const randomCard = cards[Math.floor(Math.random() * cards.length)];
-      randomCard.classList.remove('popping');
-      // Force reflow để animation chạy lại dù cùng card
-      void randomCard.offsetWidth;
-      randomCard.classList.add('popping');
-      randomCard.addEventListener('animationend', () => {
-        randomCard.classList.remove('popping');
+      this.classList.remove('popping');
+      
+      void this.offsetWidth;
+      
+      this.classList.add('popping');
+      
+      this.addEventListener('animationend', () => {
+        this.classList.remove('popping');
       }, { once: true });
     });
   });
+</script>
+  
 </script>
 </html>
 </html>
