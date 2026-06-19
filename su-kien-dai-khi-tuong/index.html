@@ -1,1 +1,410 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Play Together - Memory Board Game</title>
+  <style>
+    :root {
+      --bg: #489AE4; 
+      --card: #2964C0; 
+      --cell: #3582DE; 
+      --empty-cell: #3582DE; 
+      --text: #ffffff; 
+      --brand: #2563eb; 
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+    img {
+      -webkit-user-drag: none;
+      pointer-events: none;
+    }
+    a, a img {
+      pointer-events: auto;
+    }
+    body {
+      font-family: system-ui, sans-serif; background: var(--bg); color: var(--text);
+      display: flex; flex-direction: column; align-items: center; padding: 16px;
+    }
+    .wrapper { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 14px; }
+    
+    .box { 
+      background: var(--card); 
+      border-radius: 12px; 
+      padding: 14px; 
+      border: 1px solid rgba(255,255,255,0.1); 
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+    /* ĐẢM BẢO: Khung lớn bên ngoài luôn cho phép hiển thị các hiệu ứng nổi lên trên */
+    .box.has-list { overflow: visible; position: relative; }
 
+    .flex-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; }
+    label { font-weight: bold; color: #ffffff; }
+    input[type="number"], select {
+      padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; color: #000; outline: none;
+      width: 55px; text-align: center; font-weight: bold;
+    }
+    button {
+      padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px;
+    }
+    .primary-button {
+      min-height: 40px; border-radius: 999px; border: 0; font-weight: 900; font-size: 15px;
+      padding: 0 22px; color: #ffffff; background: #47bbe8; box-shadow: 0 5px 0 #239fce;
+      -webkit-text-stroke: 1px #2f2f33; paint-order: stroke fill;
+      text-shadow: -1px 2px 0 #2f2f33, 0 2px 0 #2f2f33, 1px 2px 0 #2f2f33; cursor: pointer;
+    }
+    .primary-button:hover { background: #4ec1ed; }
+    .primary-button.is-refresh { background: #ff9929; box-shadow: 0 5px 0 #dc7e1b; }
+    .primary-button.is-refresh:hover { background: #ffa239; }
+
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.55); align-items: center; justify-content: center; z-index: 100;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-box {
+      background: var(--card); border-radius: 14px; padding: 22px; max-width: 320px; width: 90%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+    .modal-text { font-size: 15px; font-weight: 600; margin-bottom: 18px; color: #fff; }
+    .modal-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 14px;
+      font-size: 30px;
+      font-weight: 900;
+      color: var(--card);
+    }
+    .modal-actions { display: flex; gap: 10px; justify-content: center; }
+    
+    /* THAY ĐỔI MỚI: Khung bọc xử lý cuộn vuốt mượt mà */
+    .grid-scroll-holder {
+      width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      margin-top: 5px;
+      padding: 8px 4px; /* Tạo không gian đệm nhẹ */
+    }
+    .grid-scroll-holder::-webkit-scrollbar { display: none; }
+    .grid-scroll-holder { scrollbar-width: none; }
+
+    /* THAY ĐỔI MỚI: Cho phép danh sách tràn tự do để không cắt xén box-shadow */
+    .grid-list {
+      display: flex;
+      gap: 12px;
+      width: max-content;
+      overflow: visible;
+    }
+    
+    .item-wrap {
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      gap: 6px;
+      cursor: pointer; 
+      width: 54px; /* Định hình kích thước cố định cho mỗi cột thẻ */
+    }
+    
+    /* SỬA: Đặt vị trí tương đối để z-index hoạt động chính xác */
+    .item-box {
+      width: 50px; 
+      height: 58px; 
+      border-radius: 8px; 
+      background: var(--cell); 
+      border: 2px solid transparent;
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      overflow: hidden;
+      position: relative; 
+      transition: all 0.15s ease;
+      z-index: 1;
+    }
+    
+    /* SỬA: Đưa hiệu ứng phát sáng về lại item-box, giảm độ nhòe mịn màng và đẩy lên trên cùng */
+    .item-wrap.active .item-box { 
+      border-color: #ffffff; 
+      box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.8); 
+      overflow: visible; /* Giúp viền sáng lồi lên trên ảnh */
+      z-index: 10; /* Đưa lên trên cùng toàn hệ thống */
+    }
+    
+    .main-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      z-index: 2;
+      pointer-events: none;
+      position: relative;
+      border-radius: 6px; /* Bo góc ảnh mượt mà, ôm khít nẹp thẻ */
+    }
+
+    .item-label { font-size: 11px; color: #e2e8f0; text-align: center; font-weight: 600; }
+    
+    .board-scroll-wrap::-webkit-scrollbar { display: none; }
+    .board-scroll-wrap { scrollbar-width: none; }
+    @media (max-width: 700px) and (orientation: portrait) {
+      .board-scroll-wrap {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 4px;
+      }
+    }
+    #board-grid { 
+      display: grid; gap: 6px; margin: 15px auto; padding: 10px; background: #3582DE; 
+      border-radius: 12px; width: max-content; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    .board-cell { 
+      width: 60px; height: 70px; background: var(--cell); border-radius: 8px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+      background-image: url('https://lh3.googleusercontent.com/pw/AP1GczNrOte9iKVdTsCjMpmcRj1bCupYIBQBq1CP1JxJB_3OklHOATufYoDLMPaybvFnnRoGpYZ_3aLD5oF_XJS6xYomoUZBbwIR32oKg81Vovw4IJt9CRlxnbUy9anxY_0mjwEfMR59gzW5tPtQ47mc6K5xZw=w449-h520-s-no-gm?authuser=0');
+      background-size: cover;
+      background-position: center;
+    }
+    .board-cell.has-card { background-image: none; }
+    .board-cell:hover { filter: brightness(1.1); transform: scale(1.02); }
+    .footer { font-size: 12px; color: #e2e8f0; text-align: center; padding: 10px 0 4px; line-height: 1.8; }
+    .footer a { color: #bfdbfe; text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+  <div class="box flex-row">
+    <label>Hàng:</label>
+    <select id="inp-rows">
+      <option value="2">2</option>
+      <option value="3" selected>3</option>
+    </select>
+    <label>Cột:</label>
+    <select id="inp-cols">
+      <option value="4">4</option>
+      <option value="5" selected>5</option>
+      <option value="6">6</option>
+      <option value="7">7</option>
+      <option value="8">8</option>
+    </select>
+    <button class="primary-button" onclick="askConfirm('newBoard')">Tạo bảng mới</button>
+    <button class="primary-button is-refresh" onclick="askConfirm('resetBoard')">Đặt lại</button>
+  </div>
+
+  <div class="box has-list">
+    <p style="font-size: 13px; text-align: center; margin-bottom: 8px; color: #e2e8f0;">👉 Chọn một thẻ bên dưới rồi bấm vào ô trong bảng để đặt thẻ</p>
+    
+    <div class="grid-scroll-holder">
+      <div class="grid-list">
+        <div class="item-wrap active" onclick="selectCard(this, '1')" id="card-1">
+          <div class="item-box" id="box-1"></div><div class="item-label">Thẻ Gợi ý</div>
+        </div>
+        <div class="item-wrap" onclick="selectCard(this, '2')" id="card-2">
+          <div class="item-box" id="box-2"></div><div class="item-label">Thẻ Cơ hội</div>
+        </div>
+        <div class="item-wrap" onclick="selectCard(this, '3')" id="card-3">
+          <div class="item-box" id="box-3"></div><div class="item-label">Thẻ Xu SK</div>
+        </div>
+        <div class="item-wrap" onclick="selectCard(this, '4')" id="card-4">
+          <div class="item-box" id="box-4"></div><div class="item-label">Thẻ Mưa</div>
+        </div>
+        <div class="item-wrap" onclick="selectCard(this, '5')" id="card-5">
+          <div class="item-box" id="box-5"></div><div class="item-label">Thẻ Nắng nóng</div>
+        </div>
+        <div class="item-wrap" onclick="selectCard(this, '6')" id="card-6">
+          <div class="item-box" id="box-6"></div><div class="item-label">Thẻ Bão</div>
+        </div>
+        <div class="item-wrap" onclick="selectCard(this, '7')" id="card-7">
+          <div class="item-box" id="box-7"></div><div class="item-label">Thẻ Khí lạnh</div>
+        </div>
+        <div class="item-wrap" onclick="selectCard(this, '8')" id="card-8">
+          <div class="item-box" id="box-8"></div><div class="item-label">Thẻ Gió</div>
+        </div>
+        <div class="item-wrap" onclick="selectCard(this, '9')" id="card-9">
+          <div class="item-box" id="box-9"></div><div class="item-label">Thẻ Ánh trăng</div>
+        </div>
+        <div class="item-wrap" onclick="selectCard(this, 'empty')" id="card-empty">
+          <div class="item-box" style="background:#475569; color:#22c55e; font-size:24px; font-weight:900; z-index: 4; border-radius: 8px;">✓</div><div class="item-label">Trống</div>
+        </div>
+        <div class="item-wrap" onclick="selectCard(this, 'eraser')" id="card-eraser">
+          <div class="item-box" style="font-size:20px; background:#475569; color:#fff; z-index: 4; border-radius: 8px;">❌</div><div class="item-label">Xóa thẻ</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="board-scroll-wrap">
+    <div id="board-grid"></div>
+  </div>
+
+  <div class="footer">
+    Để báo cáo lỗi vui lòng liên hệ:<br>
+    Discord: <a href="https://discord.gg/ZrwJ7QFz" target="_blank">oriolene</a>  |  
+    Tiktok: <a href="https://tiktok.com/@h.anh_9" target="_blank">@h.anh_9</a>  |  
+    Facebook: <a href="https://facebook.com/oriolene" target="_blank">oriolene</a>  |  
+    Mail: <a href="mailto:oriole.hoanganh@hotmail.com">oriole.hoanganh@hotmail.com</a>
+  </div>
+
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal-box">
+      <div class="modal-icon">?</div>
+      <div class="modal-text" id="modal-text">Bạn có muốn tiếp tục không?</div>
+      <div class="modal-actions">
+        <button class="primary-button" onclick="confirmYes()">Có</button>
+        <button class="primary-button is-refresh" onclick="confirmNo()">Không</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('contextmenu', (e) => e.preventDefault());
+  const urlsStore = { 
+    "1": "https://lh3.googleusercontent.com/pw/AP1GczO4pIlJfNcuMRe4QO7hMWFfX9jiqO8R4_RYiP7uuvUkPYxFNCGyFJTYEM23duxHIhef3YHRAFzlAs6Dg4je7tCNAM1Q4apNZwrtrIH1zJQy6K_lpuToppItd8ANEKJE-x0A4CltotvqC4veDyzSkasivQ=w449-h520-s-no-gm?authuser=0", 
+    "2": "https://lh3.googleusercontent.com/pw/AP1GczO1gOxEh3qEE7tdAdhL-8TOsw_4tdqbtxrGZbay7jxWRNQAXImfMyXE_m2OabnNXwG_uFg5sh5EtpDIgOPBCgEMd-rc0D4FGheMeq-BRa8qK3Gm69s6Cmeb7lTsu71Yo-ttIBGR6whuFZp4v01bo7T1vw=w449-h520-s-no-gm?authuser=0", 
+    "3": "https://lh3.googleusercontent.com/pw/AP1GczOihi5zX5K3uHIqzoFcKl1lUF4xaVp81VUK2oJqBehD2n8956QxQOD84T7FPt23GQj-GZW-ALScpI-gL0rztxTgIhaHNAX50OaQK0HdtJqowRe6IAm1cELdTOc3rSntf8MPawaRZFR_xKrgul3-9NFWQA=w449-h520-s-no-gm?authuser=0", 
+    "4": "https://lh3.googleusercontent.com/pw/AP1GczOv03Hsy5DZYuNvw2gLESgbyrjfWzC48ej9wmHzJfBHHsZgHXsFsRT67LQwaMTU57b7d9-gKt-PUhsPV4JuKv0o5dNI050MNXyegwIBsV1SGUFIdO6Q7iFT0vI4j20C-cVXkV1mb1T1uEmdDaHDCuJqdQ=w449-h520-s-no-gm?authuser=0", 
+    "5": "https://lh3.googleusercontent.com/pw/AP1GczMAuYZ-hrFoucrxY0yfsNb3Ik571s-EloSWlpkgLRj0c-1r0GD4FsJdzX1pcw5OpbUEFhJOR5zO9quPQXJ6Y2G4RI3twXlbxPNBOsdWLByz-9KNLmBewFVZORYASyYOGSv5HG3JOpZr7mxmcwo68XyOsg=w449-h520-s-no-gm?authuser=0", 
+    "6": "https://lh3.googleusercontent.com/pw/AP1GczN2vrl-oc7QNcCupz_8D9xVeUr6hi3mV2Sy3HmduDuXllS_LPwDI5lMb5I4zr9nllN1lW9gw58nevg9Q5qq5Vspu5vIPYoNJeouW2oBsEoHOtP3ZqTJW60r8GT_0i61DaqSGmICrS5ezPvmFCoAcWgmEQ=w449-h520-s-no-gm?authuser=0", 
+    "7": "https://lh3.googleusercontent.com/pw/AP1GczNAHxdhlCkD_hGmfXc3-CF-XoxlDTAx_cWixGvXm0QGmih-XM5pKe_fv9WsHhXguY9mQOn-cvD6AxY_Cqhhw0PvZmeirjEo_6XgorLzQU684Rxs7FbnpZxI7D-UCf3RQ2x791_uvpgh5T1sC0I6bceimA=w449-h520-s-no-gm?authuser=0", 
+    "8": "https://lh3.googleusercontent.com/pw/AP1GczOPFb2b1EE60EsuhPIT_jJldp-9JPCG39_-KPGoahQGV94eB6n2FIaSMj7cfyzpVp_NIv0YqzaGZpR0DcDFJPVbO3HvRueuRSFm9t_0-5iOQpb6JlD50a_vMVi-dLjpSanYOW1kQQ1Xex_xbcLNS18oYw=w449-h520-s-no-gm?authuser=0",
+    "9": "https://lh3.googleusercontent.com/pw/AP1GczOF4tOf2q6Y89DPAQyaJb-vGb2aagd1eb65gJ1lOE58lKoJwa_Kdv5MEjnJzIHKJmIFhQ1nPcWOQsSOBJIULh61WiBDaX_8tFFDkRbFkxKfCu1oR6X5960g49m_tpN9kF3on3a7CIjCYBtlzb5DtKfAoA=w449-h520-s-no-gm?authuser=0" 
+  };
+  
+  let currentKey = "1";
+  let currentType = "image";
+
+  function applyColorAndImage(containerElement, key, srcUrl) {
+    if (!srcUrl) return;
+    containerElement.innerHTML = ''; 
+    const keyNum = parseInt(key);
+    if (keyNum >= 1 && keyNum <= 3) {
+      containerElement.style.backgroundColor = '#F16CE1'; 
+    } else {
+      containerElement.style.backgroundColor = '#FFFFFF'; 
+    }
+    
+    const mainImg = document.createElement('img');
+    mainImg.className = 'main-img';
+    mainImg.setAttribute('referrerpolicy', 'no-referrer');
+    mainImg.src = srcUrl;
+    mainImg.style.borderRadius = '6px';
+
+    mainImg.onerror = function() {
+      mainImg.style.display = 'none';
+      containerElement.style.backgroundColor = "var(--cell)";
+    };
+    containerElement.appendChild(mainImg);
+  }
+
+  refreshPreviews();
+
+  function refreshPreviews() {
+    for (let i = 1; i <= 9; i++) {
+      const box = document.getElementById('box-' + i);
+      if (box) applyColorAndImage(box, i.toString(), urlsStore[i]);
+    }
+  }
+
+  function selectCard(element, key) {
+    document.querySelectorAll('.item-wrap').forEach(item => item.classList.remove('active'));
+    element.classList.add('active');
+    currentKey = key;
+    if (key === 'eraser') currentType = 'eraser';
+    else if (key === 'empty') currentType = 'empty';
+    else currentType = 'image';
+  }
+
+  let pendingAction = null;
+
+  function boardHasCards() {
+    return Array.from(document.querySelectorAll('.board-cell')).some(cell => cell.innerHTML.trim() !== '' || cell.dataset.empty === 'true');
+  }
+
+  function askConfirm(action) {
+    if (!boardHasCards()) {
+      runAction(action);
+      return;
+    }
+    pendingAction = action;
+    const text = document.getElementById('modal-text');
+    text.textContent = action === 'newBoard'
+      ? 'Bạn có muốn tạo bảng mới không?'
+      : 'Bạn có muốn đặt lại bảng không?';
+    document.getElementById('confirm-modal').classList.add('show');
+  }
+
+  function confirmYes() {
+    document.getElementById('confirm-modal').classList.remove('show');
+    if (pendingAction) runAction(pendingAction);
+    pendingAction = null;
+  }
+
+  function confirmNo() {
+    document.getElementById('confirm-modal').classList.remove('show');
+    pendingAction = null;
+  }
+
+  function runAction(action) {
+    if (action === 'newBoard') initGrid();
+    if (action === 'resetBoard') clearAllCells();
+  }
+
+  function initGrid() {
+    const r = parseInt(document.getElementById('inp-rows').value) || 4;
+    const c = parseInt(document.getElementById('inp-cols').value) || 5;
+    const gridEl = document.getElementById('board-grid');
+    gridEl.innerHTML = '';
+    gridEl.style.gridTemplateColumns = 'repeat(' + c + ', auto)';
+    for (let i = 0; i < r * c; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'board-cell';
+      cell.addEventListener('click', () => {
+        if (currentType === 'eraser') {
+          cell.innerHTML = '';
+          cell.style.backgroundColor = 'var(--cell)';
+          cell.classList.remove('has-card');
+          delete cell.dataset.empty;
+        } else if (currentType === 'empty') {
+          cell.innerHTML = '';
+          cell.style.backgroundColor = 'var(--empty-cell)';
+          cell.classList.add('has-card');
+          cell.dataset.empty = 'true';
+        } else {
+          applyColorAndImage(cell, currentKey, urlsStore[currentKey]);
+          cell.classList.add('has-card');
+          delete cell.dataset.empty;
+        }
+      });
+      cell.addEventListener('contextmenu', (e) => { 
+        e.preventDefault(); 
+        cell.innerHTML = ''; 
+        cell.style.backgroundColor = 'var(--cell)';
+        cell.classList.remove('has-card');
+        delete cell.dataset.empty;
+      });
+      gridEl.appendChild(cell);
+    }
+  }
+
+  function clearAllCells() {
+    document.querySelectorAll('.board-cell').forEach(cell => {
+      cell.innerHTML = '';
+      cell.style.backgroundColor = 'var(--cell)';
+      cell.classList.remove('has-card');
+      delete cell.dataset.empty;
+    });
+  }
+
+  initGrid();
+</script>
+</body>
+          </html>
