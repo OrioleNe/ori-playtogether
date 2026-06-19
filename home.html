@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ori Tools – Bộ Công Cụ</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue-deep:  #1e3a6e;
+      --blue-mid:   #2563eb;
+      --blue-sky:   #489AE4;
+      --blue-light: #bfdbfe;
+      --accent:     #47bbe8;
+      --accent-shadow: #239fce;
+      --white:      #ffffff;
+      --text-soft:  #cbd5e1;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(160deg, #0f2044 0%, #1b3a7a 50%, #1e4fa0 100%);
+      min-height: 100vh;
+      color: var(--white);
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 80px;
+    }
+
+    /* ─── NAV ─────────────────────────────── */
+    nav {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
+      background: rgba(15, 32, 68, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      white-space: nowrap;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 900;
+      font-size: 15px;
+    }
+    .nav-logo .logo-icon {
+      width: 32px; height: 29px;
+      min-width: 32px; min-height: 29px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      box-shadow: 0 3px 0 var(--accent-shadow);
+      flex-shrink: 0;
+    }
+    .nav-divider {
+      width: 1px;
+      height: 20px;
+      background: rgba(255,255,255,0.15);
+      margin: 0 4px;
+    }
+    .nav-links {
+      display: flex;
+      gap: 4px;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--text-soft);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 8px;
+      transition: color 0.2s, background 0.2s;
+    }
+    .nav-links a:hover { color: var(--white); background: rgba(255,255,255,0.08); }
+
+    /* ─── HERO ────────────────────────────── */
+    .hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      text-align: left;
+      padding: 60px 32px 60px;
+      gap: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(71,187,232,0.15);
+      border: 1px solid rgba(71,187,232,0.35);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      font-size: clamp(32px, 7vw, 62px);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -1px;
+      max-width: 700px;
+    }
+    .hero h1 span {
+      background: linear-gradient(90deg, var(--accent), #a5f3fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 16px;
+      color: var(--text-soft);
+      max-width: 480px;
+      line-height: 1.7;
+    }
+    .hero-cta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 8px;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      background: var(--accent);
+      color: var(--white);
+      border-radius: 999px;
+      font-weight: 900;
+      font-size: 15px;
+      text-decoration: none;
+      box-shadow: 0 5px 0 var(--accent-shadow), 0 8px 24px rgba(71,187,232,0.3);
+      transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+      -webkit-text-stroke: 0.5px rgba(0,0,0,0.2);
+    }
+    .btn-primary:hover {
+      background: #4ec1ed;
+      transform: translateY(-2px);
+      box-shadow: 0 7px 0 var(--accent-shadow), 0 12px 28px rgba(71,187,232,0.35);
+    }
+    .btn-primary:active {
+      transform: translateY(2px);
+      box-shadow: 0 3px 0 var(--accent-shadow);
+    }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 24px;
+      background: transparent;
+      color: var(--text-soft);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 14px;
+      text-decoration: none;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-secondary:hover { border-color: rgba(255,255,255,0.5); color: var(--white); }
+
+    /* ─── TOOLS SECTION ──────────────────── */
+    .section {
+      padding: 60px 24px;
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .section-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-size: clamp(22px, 4vw, 34px);
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+    .section-sub {
+      color: var(--text-soft);
+      font-size: 15px;
+      margin-bottom: 36px;
+      line-height: 1.6;
+    }
+
+    /* ─── TOOL CARD ──────────────────────── */
+    @keyframes pop {
+      0%   { transform: scale(1); }
+      30%  { transform: scale(1.08); }
+      55%  { transform: scale(0.96); }
+      75%  { transform: scale(1.04); }
+      90%  { transform: scale(0.99); }
+      100% { transform: scale(1); }
+    }
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 18px;
+    }
+    .tool-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 24px;
+      text-decoration: none;
+      color: var(--white);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: background 0.2s, border-color 0.2s;
+      cursor: pointer;
+    }
+    .tool-card:hover {
+      background: rgba(71,187,232,0.1);
+      border-color: rgba(71,187,232,0.4);
+    }
+    .tool-card.popping {
+      animation: pop 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+    .tool-card .card-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      background: rgba(71,187,232,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+    }
+    .tool-card h3 {
+      font-size: 17px;
+      font-weight: 800;
+    }
+    .tool-card p {
+      font-size: 13px;
+      color: var(--text-soft);
+      line-height: 1.6;
+      flex: 1;
+    }
+    .tool-card .card-arrow {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      background: rgba(71,187,232,0.15);
+      color: var(--accent);
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      margin-bottom: 4px;
+      white-space: nowrap;
+    }
+
+    /* ─── DIVIDER ────────────────────────── */
+    .divider {
+      height: 1px;
+      background: rgba(255,255,255,0.07);
+      margin: 0 24px;
+    }
+
+    /* ─── FOOTER ─────────────────────────── */
+    footer {
+      padding: 28px 32px;
+      text-align: center;
+      font-size: 13px;
+      color: #ffffff;
+      line-height: 1.8;
+    }
+    footer a { color: var(--blue-light); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 6px 18px;
+      margin-bottom: 10px;
+    }
+
+    /* ─── BOTTOM GLOW ────────────────────── */
+    .nav-glow {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 110px;
+      background: linear-gradient(to top, rgba(10, 20, 55, 0.85) 0%, transparent 100%);
+      pointer-events: none;
+      z-index: 49;
+    }
+    @media (max-width: 520px) {
+      nav { bottom: 16px; padding: 8px 14px; border-radius: 12px; }
+      .hero { padding: 40px 18px 40px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="nav-glow"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo" onclick="window.scrollTo({top:0, behavior:'smooth'});" style="cursor:pointer;">
+    <div class="logo-icon">🎮</div>
+    Ori Tools
+  </div>
+  <div class="nav-divider"></div>
+  <ul class="nav-links">
+    <li><a href="#tools" onclick="event.preventDefault(); document.getElementById('tools').scrollIntoView({behavior:'smooth'});">Công cụ</a></li>
+    <li><a href="#footer" onclick="event.preventDefault(); document.getElementById('footer').scrollIntoView({behavior:'smooth'});">Liên hệ</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="badge">✦ Bộ công cụ hỗ trợ game</div>
+  <h1>Công cụ <span>Play Together</span><br/>dành cho bạn</h1>
+  <p>Tập hợp các tiện ích hỗ trợ trò chơi Play Together — nhanh, gọn và dễ sử dụng ngay trên trình duyệt.</p>
+  <div class="hero-cta">
+    <a href="https://oriolene.github.io/ori-play-together/su-kien-dai-khi-tuong/index.html" target="_blank" class="btn-primary">
+      Mở công cụ mới nhất
+    </a>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TOOLS -->
+<section class="section" id="tools">
+  <div class="section-label">Công cụ</div>
+  <h2 class="section-title">Tất cả công cụ</h2>
+  <p class="section-sub">Nhấn vào thẻ để mở ngay công cụ bạn cần.</p>
+
+  <div class="tools-grid">
+    <!-- Tool 1: Memory Board -->
+    <a href="https://oriolene.github.io/ori-play-together/su-kien-dai-khi-tuong/index.html" target="_blank" class="tool-card">
+      <div class="card-icon">🃏</div>
+      <span class="tag">Mini Game</span>
+      <h3>Bảng Thẻ Nhớ</h3>
+      <p>Tạo và sắp xếp bảng thẻ thời tiết cho trò chơi ghép đôi trong Play Together. Hỗ trợ 9 loại thẻ, tuỳ chỉnh số hàng và cột.</p>
+      <div class="card-arrow">Mở công cụ →</div>
+    </a>
+
+    <!-- Placeholder slots for future tools -->
+    <div class="tool-card" style="opacity:0.4; cursor:default; pointer-events:none;">
+      <div class="card-icon">🔧</div>
+      <span class="tag">Sắp ra mắt</span>
+      <h3>Công cụ khác</h3>
+      <p>Các tiện ích mới đang được phát triển. Hãy theo dõi để cập nhật sớm nhất!</p>
+      <div class="card-arrow" style="color:#64748b;">Sắp có →</div>
+    </div>
+
+    <div class="tool-card" style="opacity:0.4; cursor:default; pointer-events:none;">
+      <div class="card-icon">💡</div>
+      <span class="tag">Sắp ra mắt</span>
+      <h3>Công cụ khác</h3>
+      <p>Các tiện ích mới đang được phát triển. Hãy theo dõi để cập nhật sớm nhất!</p>
+      <div class="card-arrow" style="color:#64748b;">Sắp có →</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FOOTER -->
+<footer id="footer">
+  <div class="footer-links">
+    <span>Discord: <a href="https://discord.gg/ZrwJ7QFz" target="_blank">oriolene</a></span>
+    <span>TikTok: <a href="https://tiktok.com/@h.anh_9" target="_blank">@h.anh_9</a></span>
+    <span>Facebook: <a href="https://facebook.com/oriolene" target="_blank">oriolene</a></span>
+    <span>Mail: <a href="mailto:oriole.hoanganh@hotmail.com">oriole.hoanganh@hotmail.com</a></span>
+  </div>
+  <div>Để báo cáo lỗi vui lòng liên hệ qua các kênh ở trên.</div>
+</footer>
+
+</body>
+
+<script>
+  // Khi click vào bất kỳ card nào, chọn ngẫu nhiên một card để pop
+  const cards = document.querySelectorAll('.tool-card');
+  cards.forEach(card => {
+    card.addEventListener('click', function(e) {
+      // Chọn ngẫu nhiên 1 card để pop (có thể là chính card này)
+      const randomCard = cards[Math.floor(Math.random() * cards.length)];
+      randomCard.classList.remove('popping');
+      // Force reflow để animation chạy lại dù cùng card
+      void randomCard.offsetWidth;
+      randomCard.classList.add('popping');
+      randomCard.addEventListener('animationend', () => {
+        randomCard.classList.remove('popping');
+      }, { once: true });
+    });
+  });
+</script>
+</html>
