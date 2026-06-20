@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bảng Thẻ Nhớ - Play Together - Được làm bởi Hoàng Anh (Ori)</title>
+  <title>Play Together - Memory Board Game</title>
   <style>
     :root {
-      --bg: #121212; 
+      --bg: #111214; 
       --main-container-bg: #489AE4; 
       --card: #2964C0; 
       --cell: #3582DE; 
@@ -14,12 +14,32 @@
       --text: #ffffff; 
       --text-support: #ffffff; 
       --brand: #2563eb; 
+      
+      --md-surface: #1f2023;
+      --md-on-surface: #e2e2e6;
     }
 
     @media (prefers-color-scheme: light) {
       :root {
-        --bg: #FFFFFF;
-        --text-support: #000000;
+        --bg: #f9f9fc;
+        --text-support: #1a1c1e;
+        --md-surface: #f3f3f7;
+        --md-on-surface: #1a1c1e;
+      }
+    }
+
+    @supports (color: SystemColor) {
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: Canvas;
+          --text-support: CanvasText;
+        }
+      }
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: Canvas;
+          --text-support: CanvasText;
+        }
       }
     }
 
@@ -37,9 +57,10 @@
       pointer-events: auto;
     }
     body {
-      font-family: system-ui, sans-serif; background: var(--bg); color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text);
       display: flex; flex-direction: column; align-items: center; padding: 16px;
       min-height: 100vh;
+      transition: background 0.3s ease;
     }
     .wrapper { 
       width: 100%; 
@@ -101,36 +122,89 @@
     .primary-button.is-refresh:active { box-shadow: 0 3px 0 #dc7e1b, 0 2px 4px rgba(0,0,0,0.15); }
 
     .modal-overlay {
-      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); align-items: center; justify-content: center; z-index: 100;
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0); 
+      backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px);
+      display: flex; align-items: center; justify-content: center; z-index: 100;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), backdrop-filter 0.25s ease, -webkit-backdrop-filter 0.25s ease;
     }
-    .modal-overlay.show { display: flex; }
+    .modal-overlay.show { 
+      opacity: 1; 
+      pointer-events: auto;
+      background: rgba(0, 0, 0, 0.4); 
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    }
+    
     .modal-box {
-      background: var(--card); border-radius: 14px; padding: 22px; max-width: 320px; width: 90%; text-align: center;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      box-shadow: 
-        0 20px 25px -5px rgba(0, 0, 0, 0.5), 
-        0 10px 10px -5px rgba(0, 0, 0, 0.4),
-        inset 0 1px 1px rgba(255, 255, 255, 0.2);
+      background: var(--md-surface); 
+      color: var(--md-on-surface);
+      border-radius: 28px; padding: 24px; max-width: 320px; width: 90%; text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      transform: scale(0.8);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-    .modal-text { font-size: 15px; font-weight: 600; margin-bottom: 18px; color: #fff; }
-    .modal-icon {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: #ffffff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 14px;
-      font-size: 30px;
-      font-weight: 900;
-      color: var(--card);
-      box-shadow: 
-        0 8px 16px rgba(0, 0, 0, 0.3),
-        inset 0 -3px 0 rgba(0, 0, 0, 0.15);
+    .modal-overlay.show .modal-box {
+      transform: scale(1);
     }
-    .modal-actions { display: flex; gap: 10px; justify-content: center; }
+    
+    .modal-text { font-size: 15px; font-weight: 600; margin-bottom: 24px; line-height: 1.5; }
+    
+    .icon-container-3d {
+      width: 64px; height: 64px; border-radius: 50%;
+      margin: 0 auto 20px;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transform: scale(0.5);
+    }
+    .modal-overlay.show .icon-container-3d {
+      transform: scale(1);
+    }
+
+    .icon-container-3d.style-error {
+      background: #ba1a1a;
+      box-shadow: 
+        0 8px 16px rgba(186, 26, 26, 0.4),
+        inset 0 2px 2px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .icon-container-3d.style-question {
+      background: #415f91;
+      box-shadow: 
+        0 8px 16px rgba(65, 95, 145, 0.4),
+        inset 0 2px 2px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .draw-x-transparent {
+      position: relative; width: 24px; height: 24px;
+    }
+    .draw-x-transparent::before, .draw-x-transparent::after {
+      content: '';
+      position: absolute; top: 0; left: 10px;
+      width: 4px; height: 24px;
+      border-radius: 2px;
+      background: transparent;
+      box-shadow: 
+        inset 1px 1px 2px rgba(0, 0, 0, 0.7), 
+        1px 1px 1px rgba(255, 255, 255, 0.2);
+    }
+    .draw-x-transparent::before { transform: rotate(45deg); }
+    .draw-x-transparent::after { transform: rotate(-45deg); }
+
+    .draw-question-mark {
+      font-size: 32px; font-weight: 900; color: #ffffff;
+      font-family: monospace, sans-serif;
+      line-height: 1;
+      text-shadow: 
+        0 1px 0 #cbd5e1, 0 2px 0 #94a3b8,
+        0 3px 0 #64748b, 0 4px 5px rgba(0,0,0,0.4);
+    }
+    
+    .modal-actions { display: flex; gap: 12px; justify-content: center; }
     
     .grid-scroll-holder {
       width: 100%;
@@ -271,7 +345,7 @@
         <option value="8">8</option>
       </select>
       
-      <button class="primary-button" onclick="askConfirm('newBoard')">Tạo bảng mới</button>
+      <button class="primary-button" onclick="handleNewBoardClick()">Tạo bảng mới</button>
       <button class="primary-button is-refresh hidden-panel" id="btn-reset-global" onclick="askConfirm('resetBoard')">Đặt lại</button>
     </div>
 
@@ -331,9 +405,9 @@
 
   <div class="modal-overlay" id="confirm-modal">
     <div class="modal-box">
-      <div class="modal-icon">?</div>
+      <div id="modal-icon-wrapper"></div>
       <div class="modal-text" id="modal-text">Bạn có muốn tiếp tục không?</div>
-      <div class="modal-actions">
+      <div class="modal-actions" id="modal-actions-container">
         <button class="primary-button" onclick="confirmYes()">Có</button>
         <button class="primary-button is-refresh" onclick="confirmNo()">Không</button>
       </div>
@@ -358,6 +432,7 @@
   let currentKey = "1";
   let currentType = "image";
   let hasCreatedBoard = false; 
+  let pendingAction = null;
 
   function applyColorAndImage(containerElement, key, srcUrl) {
     if (!srcUrl) return;
@@ -400,36 +475,62 @@
     else currentType = 'image';
   }
 
-  let pendingAction = null;
-
   function boardHasCards() {
     return Array.from(document.querySelectorAll('.board-cell')).some(cell => cell.innerHTML.trim() !== '' || cell.dataset.empty === 'true');
   }
 
-  function askConfirm(action) {
-    if (action === 'newBoard') {
-      const valRows = document.getElementById('inp-rows').value;
-      const valCols = document.getElementById('inp-cols').value;
-      if (!valRows || !valCols) {
-        alert("Vui lòng chọn Số hàng và Số cột hợp lệ trước khi tạo bảng!");
-        return;
-      }
-    }
+  function showAlertModal(message) {
+    const iconWrap = document.getElementById('modal-icon-wrapper');
+    const textEl = document.getElementById('modal-text');
+    const actionsContainer = document.getElementById('modal-actions-container');
 
-    if (!hasCreatedBoard) {
+    iconWrap.innerHTML = '<div class="icon-container-3d style-error"><div class="draw-x-transparent"></div></div>';
+    textEl.textContent = message;
+
+    actionsContainer.innerHTML = '<button class="primary-button" onclick="closeModal()">Đóng</button>';
+    
+    document.getElementById('confirm-modal').classList.add('show');
+  }
+
+  function handleNewBoardClick() {
+    const valRows = document.getElementById('inp-rows').value;
+    const valCols = document.getElementById('inp-cols').value;
+    
+    if (!valRows || !valCols) {
+      showAlertModal("Vui lòng chọn Số hàng và Số cột hợp lệ trước khi tạo bảng!");
+      return;
+    }
+    askConfirm('newBoard');
+  }
+
+  function askConfirm(action) {
+    if (!hasCreatedBoard || !boardHasCards()) {
       runAction(action);
       return;
     }
-    if (!boardHasCards()) {
-      runAction(action);
-      return;
-    }
+    
     pendingAction = action;
-    const text = document.getElementById('modal-text');
-    text.textContent = action === 'newBoard'
+    const iconWrap = document.getElementById('modal-icon-wrapper');
+    const textEl = document.getElementById('modal-text');
+    const actionsContainer = document.getElementById('modal-actions-container');
+
+    iconWrap.innerHTML = '<div class="icon-container-3d style-question"><div class="draw-question-mark">?</div></div>';
+    
+    textEl.textContent = action === 'newBoard'
       ? 'Bạn có muốn tạo bảng mới không?'
       : 'Bạn có muốn đặt lại bảng không?';
+
+    actionsContainer.innerHTML = `
+      <button class="primary-button" onclick="confirmYes()">Có</button>
+      <button class="primary-button is-refresh" onclick="confirmNo()">Không</button>
+    `;
+    
     document.getElementById('confirm-modal').classList.add('show');
+  }
+
+  function closeModal() {
+    document.getElementById('confirm-modal').classList.remove('show');
+    pendingAction = null;
   }
 
   function confirmYes() {
@@ -439,8 +540,7 @@
   }
 
   function confirmNo() {
-    document.getElementById('confirm-modal').classList.remove('show');
-    pendingAction = null;
+    closeModal();
   }
 
   function runAction(action) {
