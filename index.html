@@ -322,6 +322,53 @@
       nav { bottom: 28px; padding: 10px 14px 14px; border-radius: 12px; }
       .hero { padding: 40px 18px 40px; }
     }
+
+    /* ─── INSTALL BUTTON ─────────────────── */
+    .btn-install {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 24px;
+      background: rgba(71,187,232,0.12);
+      color: var(--accent);
+      border: 1px solid rgba(71,187,232,0.4);
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    .btn-install:hover {
+      background: rgba(71,187,232,0.22);
+      border-color: rgba(71,187,232,0.7);
+      color: var(--white);
+    }
+    .btn-install.visible { display: inline-flex; }
+
+    /* Toast thông báo */
+    #pwa-toast {
+      position: fixed;
+      bottom: 110px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(28,28,30,0.9);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(71,187,232,0.3);
+      color: var(--white);
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s, transform 0.3s;
+      z-index: 999;
+      white-space: nowrap;
+    }
+    #pwa-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
   </style>
 </head>
 <body>
@@ -350,6 +397,9 @@
     <a href="https://ori-playtogether.vercel.app/su-kien-dai-khi-tuong" target="_blank" class="btn-primary">
       Mở công cụ mới nhất
     </a>
+    <button class="btn-install" id="btn-install" onclick="installApp()">
+      📲 Thêm vào màn hình chính
+    </button>
   </div>
 </section>
 
@@ -403,17 +453,94 @@
   <div>Để báo cáo lỗi vui lòng liên hệ qua các kênh ở trên.</div>
 </footer>
 
+<!-- Toast -->
+<div id="pwa-toast"></div>
+
 </body>
 
 <script>
-  // Khi click vào bất kỳ card nào, chọn ngẫu nhiên một card để pop
+  // ─── PWA: Manifest inline ────────────────────────────────────
+  const manifest = {
+    name: "Ori Tools",
+    short_name: "Ori Tools",
+    description: "Bộ công cụ hỗ trợ game Play Together",
+    start_url: "/",
+    display: "standalone",
+    background_color: "#0f2044",
+    theme_color: "#47bbe8",
+    icons: [
+      {
+        src: "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="40" fill="#47bbe8"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-size="110">🎮</text></svg>`),
+        sizes: "192x192",
+        type: "image/svg+xml"
+      }
+    ]
+  };
+  const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+  const manifestURL = URL.createObjectURL(manifestBlob);
+  const linkEl = document.createElement('link');
+  linkEl.rel = 'manifest';
+  linkEl.href = manifestURL;
+  document.head.appendChild(linkEl);
+
+  // ─── PWA: Service Worker inline ─────────────────────────────
+  const swCode = `
+    self.addEventListener('install', e => self.skipWaiting());
+    self.addEventListener('activate', e => clients.claim());
+    self.addEventListener('fetch', e => {
+      e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+    });
+  `;
+  const swBlob = new Blob([swCode], { type: 'application/javascript' });
+  const swURL = URL.createObjectURL(swBlob);
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register(swURL, { scope: '/' }).catch(() => {});
+  }
+
+  // ─── PWA: Install prompt ─────────────────────────────────────
+  let deferredPrompt = null;
+  const btnInstall = document.getElementById('btn-install');
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    btnInstall.classList.add('visible');
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredPrompt = null;
+    btnInstall.classList.remove('visible');
+    showToast('✅ Đã thêm Ori Tools vào màn hình chính!');
+  });
+
+  function installApp() {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(choice => {
+        if (choice.outcome === 'accepted') {
+          btnInstall.classList.remove('visible');
+        }
+        deferredPrompt = null;
+      });
+    } else {
+      // iOS hoặc trình duyệt không hỗ trợ tự động
+      showToast('📲 Trên iOS: nhấn Chia sẻ → "Thêm vào Màn hình chính"');
+    }
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('pwa-toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3500);
+  }
+
+  // ─── Card pop animation ──────────────────────────────────────
   const cards = document.querySelectorAll('.tool-card');
   cards.forEach(card => {
     card.addEventListener('click', function(e) {
-      // Chọn ngẫu nhiên 1 card để pop (có thể là chính card này)
       const randomCard = cards[Math.floor(Math.random() * cards.length)];
       randomCard.classList.remove('popping');
-      // Force reflow để animation chạy lại dù cùng card
       void randomCard.offsetWidth;
       randomCard.classList.add('popping');
       randomCard.addEventListener('animationend', () => {
@@ -422,5 +549,4 @@
     });
   });
 </script>
-</html>
 </html>
