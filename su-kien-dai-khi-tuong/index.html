@@ -606,59 +606,5 @@
     });
   }
 </script>
-
-<script>
-  // ─── PWA Manifest (inline blob) ─────────────────────────────
-  const manifest = {
-    name: "Bảng Thẻ Nhớ – Play Together",
-    short_name: "Bảng Thẻ Nhớ",
-    description: "Công cụ tạo bảng thẻ thời tiết cho game Play Together",
-    start_url: "./",
-    scope: "./",
-    display: "standalone",
-    orientation: "portrait",
-    background_color: "#111214",
-    theme_color: "#111214",
-    icons: [
-      {
-        src: "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="40" fill="#2563eb"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-size="110">🃏</text></svg>`),
-        sizes: "192x192",
-        type: "image/svg+xml"
-      },
-      {
-        src: "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="100" fill="#2563eb"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-size="300">🃏</text></svg>`),
-        sizes: "512x512",
-        type: "image/svg+xml"
-      }
-    ]
-  };
-  const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-  const manifestURL = URL.createObjectURL(manifestBlob);
-  const linkEl = document.createElement('link');
-  linkEl.rel = 'manifest';
-  linkEl.href = manifestURL;
-  document.head.appendChild(linkEl);
-
-  // ─── Service Worker (inline blob) ───────────────────────────
-  const swCode = `
-    const CACHE = 'bang-the-nho-v1';
-    self.addEventListener('install', e => {
-      self.skipWaiting();
-    });
-    self.addEventListener('activate', e => {
-      clients.claim();
-    });
-    self.addEventListener('fetch', e => {
-      e.respondWith(
-        caches.match(e.request).then(cached => cached || fetch(e.request))
-      );
-    });
-  `;
-  if ('serviceWorker' in navigator) {
-    const swBlob = new Blob([swCode], { type: 'application/javascript' });
-    const swURL = URL.createObjectURL(swBlob);
-    navigator.serviceWorker.register(swURL, { scope: './' }).catch(() => {});
-  }
-</script>
 </body>
 </html>
